@@ -123,3 +123,4 @@ Files copied into `corpus/` by hand (tiff, exr, raw) must be MIT, BSD or CC0.
 |---|---|---|---|---|
 | `crates/codecs/src/codecs/riot_tex.rs` | Riot TEX container implementation based on the public format description | PhotoCraft contributors; specification by RitoShark | https://github.com/RitoShark/RitoTex-Photoshop (de4e252a36561ffd77a58f9cd1b66ab9f558423e) | New code MIT OR Apache-2.0; reference Apache-2.0, `licenses/RitoTex-Apache-2.0.txt` |
 | Cargo dependency `block_compression` 0.10.1 | CPU BC1/BC3/BC5/BC7 compression/decompression | Nils Hasenbanck, Intel Corporation | https://github.com/hasenbanck/block_compression | MIT, `licenses/block_compression-MIT.txt` |
+| `docs/images/riot-tex-options.png` | Offscreen TEX save dialog with a generated color-grid fixture | PhotoCraft contributors | Original screenshot and synthetic pixels; no external image assets | MIT OR Apache-2.0 |

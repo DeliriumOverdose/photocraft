@@ -9,6 +9,8 @@ Open or drag a `.tex` file into PhotoCraft. Choose File > Save As, select Riot T
 (or type a `.tex` filename), then choose BC1, BC3, BC5, BC7 or lossless BGRA8 and
 whether to generate mipmaps. Save a Copy supports the same choices.
 
+![Riot TEX save options with a synthetic texture](images/riot-tex-options.png)
+
 The source compression and mip flag are remembered, including in `.pcraft` projects.
 New files default to lossless BGRA8 with mipmaps. The original source mip levels are
 not editable layers: saves regenerate the full chain from the edited full-size image,

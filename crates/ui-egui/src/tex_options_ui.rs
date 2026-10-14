@@ -148,7 +148,7 @@ mod flow_tests {
         assert_eq!(info.compression, TexCompression::Bc3);
         assert!(!info.mipmaps);
         let original_path = h.state().session.active().unwrap().path.clone();
-        let original_encoding = h.state().session.active().unwrap().doc.file_encoding.clone();
+        let original_encoding = h.state().session.active().unwrap().doc.file_encoding;
         h.state_mut().replay_save("file.saveACopy", &json!({"path":"copy.tex","texCompression":13,"texMipmaps":true})).unwrap();
         assert_eq!(h.state().session.active().unwrap().path, original_path);
         assert_eq!(h.state().session.active().unwrap().doc.file_encoding, original_encoding);

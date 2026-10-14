@@ -35,7 +35,7 @@ pub fn import_flat(name: &str, bytes: &[u8]) -> Result<ImportResult, IoError> {
         r.document.color_table = Some(photocraft_doc::ColorTable { colors, transparent });
     }
     r.document.file_encoding = file_encoding(bytes);
-    if codecs::detect(bytes) == Some(Format::Tga) && img.layout() == ChannelLayout::Rgba {
+    if matches!(codecs::detect(bytes), Some(Format::Tga | Format::RiotTex)) && img.layout() == ChannelLayout::Rgba {
         tga_alpha_to_channel(&mut r.document)?;
     }
     // OpenEXR and Radiance HDR hold linear, scene-referred values (Rec. 709 primaries unless
@@ -70,6 +70,12 @@ pub fn import_gif_frames(name: &str, bytes: &[u8], each: &mut dyn FnMut(Document
 pub fn file_encoding(bytes: &[u8]) -> photocraft_doc::FileEncoding {
     let mut e = photocraft_doc::FileEncoding::default();
     match codecs::detect(bytes) {
+        Some(Format::RiotTex) => {
+            if let Ok(info) = codecs::tex_info(bytes) {
+                e.tex_compression = Some(info.compression.code());
+                e.tex_mipmaps = Some(info.mipmaps);
+            }
+        }
         Some(Format::Jpeg) => e.jpeg_quality = codecs::jpeg_quality(bytes),
         Some(Format::WebP) => match codecs::webp_encoding(bytes) {
             Some(codecs::WebpEncoding::Lossless) => e.webp_lossless = Some(true),
@@ -92,6 +98,12 @@ pub const DEFAULT_LOSSY_WEBP_QUALITY: u8 = 75;
 /// lossless.
 pub fn apply_file_encoding(doc: &Document, opts: &mut codecs::EncodeOptions) {
     let e = &doc.file_encoding;
+    if let Some(c) = e.tex_compression.and_then(codecs::TexCompression::from_code) {
+        opts.tex_compression = c;
+    }
+    if let Some(m) = e.tex_mipmaps {
+        opts.tex_mipmaps = m;
+    }
     if let Some(q) = e.jpeg_quality {
         opts.jpeg_quality = q.clamp(1, 100);
     }
@@ -555,6 +567,16 @@ pub(crate) fn export_flat_with(doc: &Document, format: Format, opts: &ExportOpti
         } else if let Some(gray) = convert_gray(&img, Builtin::SGray.profile(), img.sample_type())? {
             img = gray;
             warnings.push(format!("colours converted to sGray; {format:?} can't embed the document's colour profile"));
+        }
+    }
+    if format == Format::RiotTex {
+        let alpha: Vec<_> = doc.channels.iter().filter(|c| c.spot.is_none()).collect();
+        if alpha.len() > 1 {
+            return Err(IoError::Unsupported("TEX holds one alpha channel; keep only the intended mask before saving".into()));
+        }
+        img = tga_image(doc, img, Some(TgaBits::Bits32), &mut warnings)?;
+        if opts.encode.tex_compression == codecs::TexCompression::Bc5 {
+            warnings.push("BC5 stores red and green only; blue and alpha are not stored".into());
         }
     }
     if format == Format::Tga {
